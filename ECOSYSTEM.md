@@ -1,21 +1,30 @@
 # DeDynamics Ecosystem Map
-Last updated: 2026-03-12
+Last updated: 2026-03-17
 
 ## Platform Principles
-1. Cloudflare-native stack only: Workers, Pages, D1, KV.
+1. Cloudflare-native stack only: Workers, Pages, D1, KV, R2.
 2. No secrets in Git. Use Cloudflare Dashboard secrets.
-3. No R2 in current baseline architecture.
+3. R2 is an active platform primitive as of 2026-03-17 — use for all binary/media/asset storage needs.
 4. Repo-local `AGENTS.md` is the session source of truth.
+
+## Storage Routing Decision (canonical)
+| Data type | Storage layer |
+|-----------|--------------|
+| Structured relational data | D1 |
+| Cache / ephemeral / session | KV |
+| Binary assets (images, files, media) | R2 |
+| Preview / draft content (non-binary) | KV (PREVIEW_KV) |
 
 ## Active Repositories
 
 ### 1) daydream-cms
 - GitHub: `https://github.com/DeDaydreamer/daydream-cms`
 - Role: CMS API backend for website templates and client integrations.
-- Runtime: Worker + D1 + KV (`DB`, `CACHE_KV`, `PREVIEW_KV`, `RATE_LIMIT_KV`).
+- Runtime: Worker + D1 + KV + R2 (`DB`, `CACHE_KV`, `PREVIEW_KV`, `RATE_LIMIT_KV`, `ASSETS_R2`).
 - Deploy: push to `main` -> Cloudflare native GitHub integration.
-- Phase: `alpha (v0.1.0)`.
+- Phase: `alpha (v0.1.0)` — R2 foundation rebuild in progress.
 - Critical warning: `CORS_ORIGINS` must be productionized before public release.
+- R2 note: R2 bucket `daydream-cms-assets` must be created in Cloudflare dashboard by Aleks before R2 binding is live.
 
 ### 2) DeDynamics-pro-site-vCodex
 - GitHub: `https://github.com/DeDaydreamer/DeDynamics-pro-site-vCodex`
@@ -72,6 +81,7 @@ Codex never commits and never pushes.
 5. Binding names must be copied exactly from config.
 6. D1 migration rule is non-negotiable: `list -> apply -> verify`.
 7. Keep branch assumptions branch-local, especially in `amethyst-mapper`.
+8. R2 buckets must be created in Cloudflare dashboard by Aleks before any R2 binding is activated in wrangler.toml.
 
 ## External Agent Sources
 1. `EngiMax.md` - external agent operating protocol.
