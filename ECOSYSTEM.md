@@ -1,11 +1,13 @@
 # DeDynamics Ecosystem Map
-Last updated: 2026-03-17
+Last updated: 2026-03-19
 
 ## Platform Principles
 1. Cloudflare-native stack only: Workers, Pages, D1, KV, R2.
 2. No secrets in Git. Use Cloudflare Dashboard secrets.
-3. R2 is an active platform primitive as of 2026-03-17 — use for all binary/media/asset storage needs.
+3. R2 is an active platform primitive as of 2026-03-17 - use for all binary/media/asset storage needs.
 4. Repo-local `AGENTS.md` is the session source of truth.
+5. For website work, prefer a control-plane / delivery-plane split: central CMS by default, separate client-owned website repos per delivered site.
+6. Client benefit comes first: central hosting is a convenience offer, not a lock-in trap. Portability must remain credible.
 
 ## Storage Routing Decision (canonical)
 | Data type | Storage layer |
@@ -19,12 +21,24 @@ Last updated: 2026-03-17
 
 ### 1) daydream-cms
 - GitHub: `https://github.com/DeDaydreamer/daydream-cms`
-- Role: CMS API backend for website templates and client integrations.
+- Role: central CMS control plane for client websites and future Daydream products.
 - Runtime: Worker + D1 + KV + R2 (`DB`, `CACHE_KV`, `PREVIEW_KV`, `RATE_LIMIT_KV`, `ASSETS_R2`).
 - Deploy: push to `main` -> Cloudflare native GitHub integration.
-- Phase: `alpha (v0.1.0)` — R2 foundation rebuild in progress.
-- Critical warning: `CORS_ORIGINS` must be productionized before public release.
-- R2 note: R2 bucket `daydream-cms-assets` must be created in Cloudflare dashboard by Aleks before R2 binding is live.
+- Preview branch in active use: `preview/plaintext-auth-unblock`
+- Phase: `alpha (v0.5.0)` - central CMS model approved; repo-defined site contract primitive now exists.
+- Delivery model:
+  - default = one central Daydream CMS deployment + separate client-owned website repo per site
+  - premium exception = dedicated per-client CMS deployment when isolation/compliance/support boundaries justify it
+- Editing model:
+  - visual editing in CMS
+  - not a website builder
+  - editable surfaces are defined in the website repo contract
+- Publish model:
+  - normal content changes update data and cache state only
+  - no Git commits or site redeploys for ordinary editorial work
+  - deploys remain for code changes, new components, and layout/rendering logic
+- Contract note: first contract primitive lives in `templates/next-website/daydream.contract.ts`
+- Critical warning: `CORS_ORIGINS` must remain environment-correct; production is `https://dcms-admin.dedynamics.pro`
 
 ### 2) DeDynamics-pro-site-vCodex
 - GitHub: `https://github.com/DeDaydreamer/DeDynamics-pro-site-vCodex`
@@ -63,6 +77,7 @@ Last updated: 2026-03-17
 1. `daydream-shop` depends on `daydream-cms`.
 2. `amethyst-brain` depends on `amethyst-mapper`.
 3. `DeDynamics-pro-site-vCodex` is the public showcase layer.
+4. Future client website repos depend on `daydream-cms` as content control plane unless they explicitly graduate to a dedicated CMS deployment.
 
 ## Operating Workflow
 1. Aleks defines task.
@@ -71,7 +86,7 @@ Last updated: 2026-03-17
 4. Codex implements in repo.
 5. Aleks performs dashboard steps, commits, pushes, tests.
 
-Codex never commits and never pushes.
+Codex never commits and never pushes unless Aleks explicitly overrides that rule for a specific branch or repo context.
 
 ## Shared Safety Rules
 1. Read repo `AGENTS.md` and `docs/AI_CONTEXT.md` first.
@@ -82,6 +97,7 @@ Codex never commits and never pushes.
 6. D1 migration rule is non-negotiable: `list -> apply -> verify`.
 7. Keep branch assumptions branch-local, especially in `amethyst-mapper`.
 8. R2 buckets must be created in Cloudflare dashboard by Aleks before any R2 binding is activated in wrangler.toml.
+9. For client website work, separate code deploys from content publish mechanics; do not assume a content change implies a Pages/Worker redeploy.
 
 ## External Agent Sources
 1. `EngiMax.md` - external agent operating protocol.
